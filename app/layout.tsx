@@ -9,8 +9,7 @@ export const metadata = {
 };
 
 const navigation = [
-  { href: '/', label: 'Yoga LIFF' },
-  { href: '/liff', label: 'Rich Menu Entry' },
+  { href: '/', label: 'Rich Menu Entry' },
   { href: '/branches', label: 'Branches' },
   { href: '/classes', label: 'Classes' },
   { href: '/packages', label: 'Packages' },
