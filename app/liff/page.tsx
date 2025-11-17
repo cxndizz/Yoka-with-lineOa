@@ -32,9 +32,9 @@ async function loadLiffSdk(): Promise<any> {
 
 export default function LiffEntryPage() {
   const [profile, setProfile] = useState<LineProfile | null>(null);
-  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'ready' | 'error' | 'prompt-login'>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [mockMember, setMockMember] = useState<any>(null);
+  const [liffApp, setLiffApp] = useState<any | null>(null);
 
   useEffect(() => {
     async function bootstrap() {
@@ -52,8 +52,9 @@ export default function LiffEntryPage() {
           return;
         }
         await liff.init({ liffId });
+        setLiffApp(liff);
         if (!liff.isLoggedIn()) {
-          liff.login({});
+          setStatus('prompt-login');
           return;
         }
         const liffProfile = await liff.getProfile();
@@ -78,75 +79,99 @@ export default function LiffEntryPage() {
     bootstrap();
   }, []);
 
-  async function loadMockMember() {
-    const res = await fetch('/api/me');
-    if (res.ok) {
-      const data = await res.json();
-      setMockMember(data);
+  async function handleLogin() {
+    if (!liffApp) {
+      setError('ยังไม่พบ LIFF SDK บนหน้านี้');
+      return;
     }
+    setStatus('loading');
+    liffApp.login({});
+  }
+
+  function handleContinue() {
+    window.location.href = '/branches';
   }
 
   return (
-    <section>
-      <div className="hero">
+    <section className="liff-section">
+      <div className="liff-hero">
         <div>
-          <p className="tag">LIFF entry</p>
-          <h1>เชื่อมต่อ LINE OA → Booking</h1>
+          <p className="liff-hero__eyebrow">Yoga On-The-Go</p>
+          <h1>เริ่มจองคลาสโยคะผ่าน LINE</h1>
           <p>
-            หน้า /liff นี้ถูกเตรียมไว้ให้ Rich Menu เปิดมาที่ LIFF ID ของคุณ จากนั้นโหลด SDK, ดึงโปรไฟล์
-            และส่งเข้า /api/auth/line ตามที่ README.md อธิบาย.
+            เปิดเมนูนี้จาก Rich Menu เพื่อเข้าสู่พื้นที่ลูกค้าของ Yoga Club และจองคอร์สในสาขาโปรดได้ทันที
+            เพียงล็อกอินด้วยบัญชี LINE ของคุณ
           </p>
+          <div className="cta-row">
+            {status === 'ready' ? (
+              <button type="button" className="primary-btn" onClick={handleContinue}>
+                ไปยังหน้าจองคลาส
+              </button>
+            ) : (
+              <button type="button" className="primary-btn" onClick={handleLogin} disabled={status === 'loading'}>
+                {status === 'loading' ? 'กำลังเชื่อมต่อ...' : 'ล็อกอินผ่าน LINE'}
+              </button>
+            )}
+            <a className="ghost-btn" href="/packages">
+              ดูแพ็กเกจสุดคุ้ม
+            </a>
+          </div>
+        </div>
+        <div className="liff-hero__card">
+          <p>สถานะบัญชี</p>
+          <strong>
+            {status === 'ready' && profile
+              ? 'พร้อมใช้งาน'
+              : status === 'prompt-login'
+                ? 'ต้องการล็อกอิน'
+                : status === 'loading'
+                  ? 'กำลังตรวจสอบ'
+                  : error
+                    ? 'เกิดข้อผิดพลาด'
+                    : 'กำลังเตรียมระบบ'}
+          </strong>
+          {profile && (
+            <div className="liff-profile">
+              {profile.pictureUrl ? (
+                <img src={profile.pictureUrl} alt={profile.displayName} />
+              ) : (
+                <div className="liff-profile__fallback">{profile.displayName?.charAt(0) || 'U'}</div>
+              )}
+              <div>
+                <p>{profile.displayName}</p>
+                <span>{profile.userId}</span>
+              </div>
+            </div>
+          )}
+          {error && <p className="error-text">{error}</p>}
+          {status === 'prompt-login' && (
+            <p className="muted-text">แตะปุ่ม “ล็อกอินผ่าน LINE” เพื่อยืนยันตัวตนก่อนใช้งาน</p>
+          )}
         </div>
       </div>
 
-      <div className="card">
-        <h3>สถานะ</h3>
-        <p>State: {status}</p>
-        {profile && (
-          <div className="user-pill" style={{ marginTop: 12 }}>
-            {profile.pictureUrl ? (
-              <img src={profile.pictureUrl} alt={profile.displayName} />
-            ) : (
-              <div className="avatar-fallback">{profile.displayName?.charAt(0)}</div>
-            )}
-            <div>
-              <p>{profile.displayName}</p>
-              <span>{profile.userId}</span>
-            </div>
-          </div>
-        )}
-        {error && <p className="error-text">{error}</p>}
-        <p>
-          หากทดสอบใน dev และยังไม่ได้ตั้งค่า LIFF จริง สามารถกดดู mock member ที่ /api/me เพื่อเช็ก session
-          ชั่วคราวได้.
-        </p>
-        <button type="button" className="ghost-btn" onClick={loadMockMember}>
-          โหลด mock member
-        </button>
-        {mockMember && (
-          <pre style={{ marginTop: 12, background: '#0f172a', color: '#fff', padding: 12, borderRadius: 12 }}>
-            {JSON.stringify(mockMember, null, 2)}
-          </pre>
-        )}
-      </div>
-
-      <div className="section-grid">
-        <div className="card">
-          <h3>Flow</h3>
+      <div className="liff-grid">
+        <div className="liff-card">
+          <h3>จองง่ายภายใน 3 ขั้นตอน</h3>
           <ol>
-            <li>LINE OA Rich Menu → LIFF ID → URL /liff</li>
-            <li>โหลด SDK, init ด้วย liffId</li>
-            <li>เรียก getProfile แล้วส่งเข้า /api/auth/line</li>
-            <li>redirect ไปหน้า booking หลัก เช่น /branches</li>
+            <li>ล็อกอินด้วย LINE แล้วเลือกสาขา</li>
+            <li>ดูตารางเรียนที่ยังว่างและกดจอง</li>
+            <li>ชำระเงินผ่าน Omise ได้ทันทีใน LIFF</li>
           </ol>
         </div>
-        <div className="card">
-          <h3>ข้อควรทำ</h3>
-          <ul>
-            <li>เพิ่ม state management / session จริง (ไม่ใช้ mock)</li>
-            <li>บันทึก token / cookie อย่างปลอดภัย</li>
-            <li>จัดการกรณีปิด LIFF หรือยกเลิก permission</li>
-          </ul>
+        <div className="liff-card">
+          <h3>แพ็กเกจแนะนำ</h3>
+          <p>สะสมคอร์สโปรดในแพ็กเกจ 5 / 10 ครั้ง หรือเลือกแบบรายเดือน</p>
+          <a href="/packages" className="link-button">
+            เปิดดูแพ็กเกจ
+          </a>
+        </div>
+        <div className="liff-card">
+          <h3>สาขาใกล้คุณ</h3>
+          <p>ตรวจสอบคลาสว่างได้ทุกสาขา ทั้งสาขาเมือง ชั้นดาดฟ้า และริมทะเล</p>
+          <a href="/branches" className="link-button">
+            ดูแผนที่สาขา
+          </a>
         </div>
       </div>
     </section>

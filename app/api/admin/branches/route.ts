@@ -1,14 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getMockSessionMember } from '@/lib/mock-auth';
-
-async function authorizeAdmin() {
-  const member = await getMockSessionMember();
-  if (!member || !member.isAdmin) {
-    return null;
-  }
-  return member;
-}
+import { authorizeAdmin } from '@/lib/admin-auth';
 
 export async function GET() {
   const member = await authorizeAdmin();
