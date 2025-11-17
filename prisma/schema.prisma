@@ -1,0 +1,204 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Branch {
+  id           String   @id @default(uuid())
+  name         String
+  slug         String   @unique
+  address      String?
+  locationInfo String?
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  rooms          Room[]
+  classSchedules ClassSchedule[]
+  packages       Package[]
+  memberPackages MemberPackage[]
+
+  // ฝั่งตรงข้ามของ Member.homeBranch
+  homeMembers Member[] @relation("BranchHomeMembers")
+}
+
+model Room {
+  id              String   @id @default(uuid())
+  branchId        String
+  name            String
+  capacityDefault Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  branch         Branch          @relation(fields: [branchId], references: [id])
+  classSchedules ClassSchedule[]
+}
+
+model Member {
+  id              String   @id @default(uuid())
+  lineUserId      String   @unique
+  lineDisplayName String?
+  linePictureUrl  String?
+  email           String?
+  phone           String?
+  homeBranchId    String?
+  isAdmin         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  homeBranch     Branch?         @relation("BranchHomeMembers", fields: [homeBranchId], references: [id])
+  bookings       Booking[]
+  memberPackages MemberPackage[]
+  payments       Payment[]
+}
+
+model Teacher {
+  id        String   @id @default(uuid())
+  name      String
+  bio       String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  classSchedules ClassSchedule[]
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  level       String?
+  durationMin Int?
+  mainImageId String?  @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // รูปทั้งหมดของคอร์สนี้
+  images CourseImage[] @relation("CourseImages")
+
+  // รูปหลักของคอร์สนี้ (ชี้ไปที่ CourseImage ตัวหนึ่ง)
+  mainImage CourseImage? @relation("CourseMainImage", fields: [mainImageId], references: [id])
+
+  classSchedules ClassSchedule[]
+}
+
+model CourseImage {
+  id          String   @id @default(uuid())
+  courseId    String
+  originalUrl String
+  webpUrl     String
+  isMain      Boolean  @default(false)
+  altText     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ความสัมพันธ์หลัก: รูปนี้เป็นรูปของคอร์สไหน
+  course Course @relation("CourseImages", fields: [courseId], references: [id])
+
+  // ความสัมพันธ์เสริม: รูปนี้ถูกใช้เป็น mainImage ของคอร์สไหน (ถ้ามี)
+  mainOf Course? @relation("CourseMainImage")
+}
+
+model ClassSchedule {
+  id        String   @id @default(uuid())
+  branchId  String
+  roomId    String?
+  courseId  String
+  teacherId String?
+  startAt   DateTime
+  endAt     DateTime
+  capacity  Int?
+  status    String   @default("scheduled")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  branch   Branch    @relation(fields: [branchId], references: [id])
+  room     Room?     @relation(fields: [roomId], references: [id])
+  course   Course    @relation(fields: [courseId], references: [id])
+  teacher  Teacher?  @relation(fields: [teacherId], references: [id])
+  bookings Booking[]
+}
+
+model Booking {
+  id              String    @id @default(uuid())
+  memberId        String
+  classScheduleId String
+  memberPackageId String?
+  status          String    @default("booked")
+  bookedAt        DateTime  @default(now())
+  cancelledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  member        Member         @relation(fields: [memberId], references: [id])
+  classSchedule ClassSchedule  @relation(fields: [classScheduleId], references: [id])
+  memberPackage MemberPackage? @relation(fields: [memberPackageId], references: [id])
+
+  // ฝั่งตรงข้ามของ Payment.booking
+  payment Payment? @relation("BookingPayment")
+
+  @@unique([memberId, classScheduleId])
+}
+
+model Package {
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  packageType   String // 'sessions' | 'time_pass'
+  totalSessions Int?
+  durationDays  Int?
+  price         Decimal
+  currency      String
+  scope         String // 'global' | 'branch_only'
+  branchId      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  memberPackages MemberPackage[]
+}
+
+model MemberPackage {
+  id                String    @id @default(uuid())
+  memberId          String
+  packageId         String
+  branchId          String?
+  status            String    @default("active") // 'active' | 'expired' | 'used_up' | 'pending'
+  remainingSessions Int?
+  startedAt         DateTime?
+  expiresAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  member   Member    @relation(fields: [memberId], references: [id])
+  package  Package   @relation(fields: [packageId], references: [id])
+  branch   Branch?   @relation(fields: [branchId], references: [id])
+  bookings Booking[]
+  payments Payment[]
+}
+
+model Payment {
+  id               String   @id @default(uuid())
+  memberId         String
+  memberPackageId  String?
+  bookingId        String?  @unique // <<== เพิ่ม @unique ตรงนี้
+  amount           Decimal
+  currency         String
+  status           String   @default("pending") // 'pending' | 'paid' | 'failed' | 'cancelled'
+  provider         String   @default("omise")
+  providerChargeId String?
+  rawPayload       Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  member        Member         @relation(fields: [memberId], references: [id])
+  memberPackage MemberPackage? @relation(fields: [memberPackageId], references: [id])
+  booking       Booking?       @relation("BookingPayment", fields: [bookingId], references: [id])
+}
