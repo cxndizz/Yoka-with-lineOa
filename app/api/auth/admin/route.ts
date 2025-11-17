@@ -1,8 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { createSession, deleteSession, serializeSession, touchSession } from '@/lib/realtime-session';
 
 const ADMIN_SESSION_COOKIE = 'admin_session';
+const ADMIN_LINE_USER_ID = process.env.ADMIN_LINE_USER_ID || 'admin-line-user';
 
 function getCredentials() {
   return {
@@ -32,11 +34,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid-credentials' }, { status: 401 });
   }
 
+  const adminMember = await prisma.member.upsert({
+    where: { lineUserId: ADMIN_LINE_USER_ID },
+    update: {
+      isAdmin: true,
+      email: expected.email,
+      lineDisplayName: 'Backoffice Admin',
+    },
+    create: {
+      lineUserId: ADMIN_LINE_USER_ID,
+      lineDisplayName: 'Backoffice Admin',
+      email: expected.email,
+      isAdmin: true,
+    },
+  });
+
   const session = createSession({
     role: 'admin',
-    referenceId: expected.email,
-    displayName: 'Backoffice Admin',
-    metadata: { email },
+    referenceId: adminMember.id,
+    displayName: adminMember.lineDisplayName ?? 'Backoffice Admin',
+    metadata: { email, memberId: adminMember.id },
     ttlMs: 1000 * 60 * 60,
   });
 

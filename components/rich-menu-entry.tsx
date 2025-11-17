@@ -49,7 +49,7 @@ export default function RichMenuEntry() {
   const [error, setError] = useState<string | null>(null);
   const [liffApp, setLiffApp] = useState<any | null>(null);
   const [session, setSession] = useState<SessionSummary | null>(null);
-  const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
+  const [, setConnectionState] = useState<ConnectionState>('disconnected');
   const socketRef = useRef<WebSocket | null>(null);
   const heartbeatRef = useRef<number | null>(null);
 
@@ -178,13 +178,6 @@ export default function RichMenuEntry() {
     liffApp.login({});
   }
 
-  async function handleLogout() {
-    await fetch('/api/auth/session?role=customer', { method: 'DELETE' });
-    setSession(null);
-    setProfile(null);
-    setStatus('prompt-login');
-  }
-
   function handleContinue() {
     window.location.href = '/branches';
   }
@@ -241,13 +234,6 @@ export default function RichMenuEntry() {
     };
   }, []);
 
-  const realtimeLabel =
-    connectionState === 'connected'
-      ? 'Real-time พร้อม'
-      : connectionState === 'connecting'
-        ? 'กำลังเชื่อมต่อ Real-time'
-        : 'ยังไม่เชื่อมต่อ Real-time';
-
   return (
     <section className="liff-section">
       <div className="liff-hero">
@@ -259,14 +245,9 @@ export default function RichMenuEntry() {
           </p>
           <div className="cta-row">
             {status === 'ready' ? (
-              <>
-                <button type="button" className="primary-btn" onClick={handleContinue}>
-                  ไปยังหน้าจองคลาส
-                </button>
-                <button type="button" className="ghost-btn" onClick={handleLogout}>
-                  ออกจากระบบ
-                </button>
-              </>
+              <button type="button" className="primary-btn" onClick={handleContinue}>
+                ไปยังหน้าจองคลาส
+              </button>
             ) : (
               <button type="button" className="primary-btn" onClick={handleLogin} disabled={status === 'loading'}>
                 {status === 'loading' ? 'กำลังเชื่อมต่อ...' : 'ล็อกอินผ่าน LINE'}
@@ -276,48 +257,6 @@ export default function RichMenuEntry() {
               ดูแพ็กเกสุดคุ้ม
             </a>
           </div>
-        </div>
-        <div className="liff-hero__card">
-          <p>สถานะบัญชี</p>
-          <strong>
-            {status === 'ready' && profile
-              ? 'พร้อมใช้งาน'
-              : status === 'prompt-login'
-                ? 'ต้องการล็อกอิน'
-                : status === 'loading'
-                  ? 'กำลังตรวจสอบ'
-                  : status === 'checking'
-                    ? 'กำลังตรวจสอบเซสชัน'
-                    : error
-                      ? 'เกิดข้อผิดพลาด'
-                      : 'กำลังเตรียมระบบ'}
-          </strong>
-          {profile && (
-            <div className="liff-profile">
-              {profile.pictureUrl ? (
-                <img src={profile.pictureUrl} alt={profile.displayName} />
-              ) : (
-                <div className="liff-profile__fallback">{profile.displayName?.charAt(0) || 'U'}</div>
-              )}
-              <div>
-                <p>{profile.displayName}</p>
-                <span>{profile.userId}</span>
-              </div>
-            </div>
-          )}
-          {error && <p className="error-text">{error}</p>}
-          {status === 'prompt-login' && (
-            <p className="muted-text">แตะปุ่ม “ล็อกอินผ่าน LINE” เพื่อยืนยันตัวตนก่อนใช้งาน</p>
-          )}
-          <div className={`connection-pill connection-pill--${connectionState}`}>
-            <span className="dot" />
-            {realtimeLabel}
-          </div>
-          {session && (
-            <p className="session-meta">
-              เซสชันจะหมดอายุ {new Date(session.expiresAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
-            </p>
-          )}
         </div>
       </div>
 
