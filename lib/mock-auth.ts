@@ -7,8 +7,13 @@ import { prisma } from './prisma';
  * session / LINE Login integration in production.
  */
 export async function getMockSessionMember(): Promise<Member | null> {
-  const member = await prisma.member.findFirst({
-    orderBy: { createdAt: 'asc' },
-  });
-  return member;
+  try {
+    const member = await prisma.member.findFirst({
+      orderBy: { createdAt: 'asc' },
+    });
+    return member;
+  } catch (error) {
+    console.warn('Falling back to anonymous member due to Prisma error:', error);
+    return null;
+  }
 }

@@ -1,88 +1,163 @@
 import Link from 'next/link';
 
-const features = [
-  'Next.js 14 App Router พร้อม TypeScript',
-  'Prisma + PostgreSQL สำหรับจัดการสาขา คอร์ส แพ็กเกจ และตารางเรียน',
-  'เชื่อมต่อ LINE OA ผ่าน LIFF / LINE Login และเรียกใช้ Omise Node SDK ได้ทันที',
-  'API พื้นฐาน: auth/line, me, branches, classes, bookings, packages, purchases, omise/webhook',
+const heroPoints = [
+  'แสดงจำนวนสิทธิ์และแพ็กเกจที่ยังเหลือให้สมาชิกเห็นทันที',
+  'ซิงก์ตารางเรียนจากทุกสาขาผ่านฐานข้อมูล Prisma + PostgreSQL',
+  'จอง จ่าย และยืนยันผ่าน LINE OA, LIFF และ Omise ภายใน flow เดียว',
 ];
 
-const checklist = [
-  'ตั้งค่า environment (.env) ตาม README.md',
-  'Prisma migrate + เติมข้อมูลผ่าน Studio หรือ API',
-  'เชื่อม LIFF URL → /liff แล้วส่งโปรไฟล์ไป /api/auth/line',
-  'ทดสอบ flow จองคลาส / ซื้อแพ็กเกจ / ยกเลิก / รับ webhook',
+const journeySteps = [
+  {
+    title: 'เริ่มจาก Rich Menu',
+    description: 'ลูกค้าแตะ Rich Menu แล้วเข้าสู่ LIFF (/liff) ด้วย URL จริงที่ deploy ไว้.',
+  },
+  {
+    title: 'ล็อกอินด้วย LINE',
+    description: 'เมื่อเข้าสู่ LIFF ระบบเรียก /api/auth/line เพื่อสร้าง session ของสมาชิก.',
+  },
+  {
+    title: 'เลือกสาขาและคลาส',
+    description: 'สำรวจ /branches และ /classes เพื่อเลือกคลาสที่ยังมีที่ว่างพร้อมรายละเอียดครู.',
+  },
+  {
+    title: 'ซื้อหรือใช้แพ็กเกจ',
+    description: 'สมาชิกดูสิทธิ์คงเหลือที่ /packages และชำระเงินผ่าน Omise webhook.',
+  },
+];
+
+const actionCards = [
+  {
+    title: 'ดูตารางคลาส',
+    description: 'สำรวจคลาสตามวันที่และสาขา พร้อมแสดงจำนวนที่นั่งว่างแบบเรียลไทม์.',
+    href: '/classes',
+    cta: 'เข้าสู่ตารางเรียน',
+  },
+  {
+    title: 'เลือกสาขาโปรด',
+    description: 'โชว์รายละเอียดแต่ละสาขา เวลาทำการ และคลาสเด่นที่เปิดรับสมัคร.',
+    href: '/branches',
+    cta: 'สำรวจสาขา',
+  },
+  {
+    title: 'แพ็กเกจสำหรับคุณ',
+    description: 'แพ็กเกจ 5/10 ครั้ง หรือแบบรายเดือนเพื่อรองรับลูกค้าทุกกลุ่ม.',
+    href: '/packages',
+    cta: 'ดูแพ็กเกจ',
+  },
+];
+
+const supportHighlights = [
+  {
+    title: 'Omise พร้อมเชื่อมต่อ',
+    description: 'endpoint /api/packages/:id/purchase และ /api/omise/webhook รองรับการตรวจ signature.',
+  },
+  {
+    title: 'แดชบอร์ดสตูดิโอ',
+    description: 'หน้า /dashboard-87xDz6t ใช้จัดการสาขา คอร์ส ตารางเรียน และข้อมูลแอดมิน.',
+  },
+  {
+    title: 'ต่อยอด Production ได้ทันที',
+    description: 'เพิ่ม session จริง, image upload, และ role-based access ตามที่ README.md แนะนำ.',
+  },
 ];
 
 export default function HomePage() {
   return (
-    <div className="hero">
-      <div>
-        <p className="tag">พร้อมต่อยอดสู่ Production</p>
-        <h1>ระบบจองคอร์สโยคะหลายสาขา ผ่าน LINE OA + Omise</h1>
-        <p>
-          โครงสร้างพร้อมใช้สำหรับทีมสตูดิโอโยคะที่ต้องการให้ลูกค้าจองคลาสผ่าน Rich-Menu,
-          รู้สิทธิ์คงเหลือจากแพ็กเกจ และจ่ายเงินผ่าน Omise ได้แบบไร้รอยต่อ ทั้งหมดต่อยอดจาก
-          README.md ที่ให้ขั้นตอนครบถ้วน.
-        </p>
-        <div className="cta-row">
-          <Link href="/branches" className="primary-btn">
-            เปิดตารางคลาส &rarr;
-          </Link>
-          <Link href="/liff" className="ghost-btn">
-            ทดสอบ LIFF entry
-          </Link>
+    <div className="onpage">
+      <section className="yoga-hero">
+        <div className="yoga-hero__content">
+          <p className="tag tag--blush">Yoga LIFF Experience</p>
+          <h1>หน้าหลักที่ยก flow จาก LIFF มาไว้ให้ครบ</h1>
+          <p>
+            ออกแบบเพื่อเป็นหน้ารวมข้อมูลที่อัปเดตจาก{' '}
+            <a href="https://34a8b8ec5a2f.ngrok-free.app/liff" target="_blank" rel="noreferrer" className="floating-link">
+              https://34a8b8ec5a2f.ngrok-free.app/liff
+            </a>{' '}
+            ช่วยให้ทีมโยคะสื่อสารประสบการณ์จริงก่อนลูกค้าเข้าสู่ LIFF.
+          </p>
+          <div className="cta-row">
+            <a
+              href="https://34a8b8ec5a2f.ngrok-free.app/liff"
+              className="primary-btn"
+              target="_blank"
+              rel="noreferrer"
+            >
+              เปิด LIFF ที่ใช้งานจริง
+            </a>
+            <Link href="/liff" className="ghost-btn">
+              ทดลอง flow จำลอง
+            </Link>
+          </div>
+          <ul className="hero-points">
+            {heroPoints.map((point) => (
+              <li key={point}>{point}</li>
+            ))}
+          </ul>
         </div>
-      </div>
+        <div className="hero-visual card">
+          <p className="muted-text">สรุปรายงานประจำวัน</p>
+          <div className="stat-grid">
+            <div className="stat-card">
+              <strong>128</strong>
+              <span>การจองวันนี้</span>
+            </div>
+            <div className="stat-card">
+              <strong>42</strong>
+              <span>ลูกค้าจ่ายผ่าน Omise</span>
+            </div>
+            <div className="stat-card">
+              <strong>5</strong>
+              <span>สตูดิโอที่เชื่อมต่อ</span>
+            </div>
+            <div className="stat-card">
+              <strong>92%</strong>
+              <span>อัตราเข้าร่วม</span>
+            </div>
+          </div>
+          <p className="muted-text">ข้อมูล mock เพื่อสื่อสาร layout และ responsive grid</p>
+        </div>
+      </section>
 
-      <div className="card">
-        <h3>ฟีเจอร์หลัก</h3>
-        <ul>
-          {features.map((item) => (
-            <li key={item}>{item}</li>
+      <section>
+        <h2 className="section-heading">Journey ใน LIFF ที่สะท้อนบนหน้าแรก</h2>
+        <div className="journey-grid">
+          {journeySteps.map((step) => (
+            <article key={step.title} className="journey-step">
+              <h3>{step.title}</h3>
+              <p>{step.description}</p>
+            </article>
           ))}
-        </ul>
-      </div>
+        </div>
+      </section>
 
-      <div>
-        <h2 className="section-heading">Checklist ก่อนขึ้นจริง</h2>
-        <ol>
-          {checklist.map((item) => (
-            <li key={item}>{item}</li>
+      <section>
+        <h2 className="section-heading">เริ่มต้นใช้งานจากเมนูหลัก</h2>
+        <div className="chakra-grid">
+          {actionCards.map((card) => (
+            <article key={card.title} className="chakra-card">
+              <div>
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+              </div>
+              <Link href={card.href} className="link-button">
+                {card.cta}
+              </Link>
+            </article>
           ))}
-        </ol>
-      </div>
+        </div>
+      </section>
 
-      <div className="section-grid">
-        <div className="card">
-          <h3>Flow สมาชิก</h3>
-          <p>
-            ลูกค้าเปิด Rich Menu → LIFF (/liff) → ล็อกอิน LINE → /branches เพื่อเลือกสาขา
-            → /classes สำหรับเลือกคลาส → /packages เมื่อต้องซื้อสิทธิ์เพิ่ม.
-          </p>
+      <section>
+        <h2 className="section-heading">การสนับสนุนจากทีมสตูดิโอ</h2>
+        <div className="support-grid">
+          {supportHighlights.map((item) => (
+            <article key={item.title} className="support-card">
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
         </div>
-        <div className="card">
-          <h3>ฝั่งแอดมิน</h3>
-          <p>
-            ใช้หน้า <Link href="/dashboard-87xDz6t">/dashboard-87xDz6t</Link> เพื่อสร้างสาขา คอร์ส และตารางเรียน
-            จากนั้นสามารถต่อ endpoint image / payment เพิ่มตามที่ README.md แนะนำ.
-          </p>
-        </div>
-        <div className="card">
-          <h3>Omise + Webhook</h3>
-          <p>
-            API <code>/api/packages/:id/purchase</code> และ <code>/api/omise/webhook</code>{' '}
-            พร้อมสำหรับเชื่อม Omise Dashboard – อย่าลืมตรวจ signature ก่อนอัปเดตสถานะ.
-          </p>
-        </div>
-        <div className="card">
-          <h3>Auth Strategy</h3>
-          <p>
-            ปัจจุบันใช้ mock member (record แรกใน DB) เพื่อให้ UI ทำงานได้ครบทุกหน้า พร้อมบอกตำแหน่ง
-            ที่ต้องต่อ session / JWT จริงใน README.md.
-          </p>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }
