@@ -12,6 +12,7 @@ const checklist = [
   'Prisma migrate + เติมข้อมูลผ่าน Studio หรือ API',
   'เชื่อม LIFF URL → /liff แล้วส่งโปรไฟล์ไป /api/auth/line',
   'ทดสอบ flow จองคลาส / ซื้อแพ็กเกจ / ยกเลิก / รับ webhook',
+  'หากต้องการบริหารข้อมูล ให้รัน dev:admin (port 4001) เพื่อใช้ Admin Portal แยกจากลูกค้า',
 ];
 
 export default function HomePage() {
@@ -62,10 +63,10 @@ export default function HomePage() {
           </p>
         </div>
         <div className="card">
-          <h3>ฝั่งแอดมิน</h3>
+          <h3>Admin Portal (แยกพอร์ต)</h3>
           <p>
-            ใช้หน้า <Link href="/admin">/admin</Link> เพื่อสร้างสาขา คอร์ส และตารางเรียน จากนั้น
-            สามารถต่อ endpoint image / payment เพิ่มตามที่ README.md แนะนำ.
+            รันคำสั่ง <code>npm run dev:admin</code> เพื่อเปิดระบบหลังบ้านบนพอร์ต 4001 ซึ่งรวมหน้า
+            Dashboard ไว้ที่ <code>/admin</code> โดยไม่ปะปนกับอินเทอร์เฟซลูกค้า.
           </p>
         </div>
         <div className="card">

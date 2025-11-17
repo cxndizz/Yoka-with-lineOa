@@ -63,6 +63,8 @@ cp .env.example .env
   - จาก Omise Dashboard
 - `APP_BASE_URL`
   - เช่น `http://localhost:3000` ในตอน dev
+- `APP_PROFILE`
+  - เลือก `customer` (ค่าเริ่มต้น) หรือ `admin` เพื่อระบุว่าจะรันอินเทอร์เฟซแบบใดในโปรเซสนี้
 
 ### 4. สร้างฐานข้อมูลด้วย Prisma
 
@@ -76,7 +78,7 @@ npx prisma migrate dev --name init
 npm run prisma:migrate
 ```
 
-### 5. รันเว็บในโหมด Dev
+### 5. รันเว็บลูกค้าในโหมด Dev
 
 ```bash
 npm run dev
@@ -86,6 +88,17 @@ npm run dev
 
 - `http://localhost:3000` → หน้า Home
 - `http://localhost:3000/api/branches` → ลองเรียก API (ถ้ามี data แล้ว)
+
+### 5b. รันเว็บฝั่ง Admin (พอร์ตแยก)
+
+อินเทอร์เฟซหลังบ้านจะไม่แชร์ session กับลูกค้าและจะทำงานบนพอร์ตใหม่
+
+```bash
+npm run dev:admin
+```
+
+- `http://localhost:4001/admin` → Yoga Admin Dashboard
+- mock session จะสลับเป็นผู้ดูแลโดยอัตโนมัติ (เฉพาะโปรเซสที่ตั้ง `APP_PROFILE=admin`)
 
 ### 6. เติมข้อมูลเริ่มต้น (seed) ด้วยตัวเอง
 

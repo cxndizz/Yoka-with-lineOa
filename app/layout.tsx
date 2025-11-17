@@ -2,22 +2,16 @@ import './globals.css';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { getMockSessionMember } from '@/lib/mock-auth';
+import { APP_PROFILE } from '@/lib/app-profile';
 
 export const metadata = {
   title: 'Yoga Booking via LINE',
   description: 'Yoga class booking system integrated with LINE OA & Omise',
 };
 
-const navigation = [
-  { href: '/', label: 'Overview' },
-  { href: '/branches', label: 'Branches' },
-  { href: '/classes', label: 'Class Schedule' },
-  { href: '/packages', label: 'Packages' },
-  { href: '/admin', label: 'Admin' },
-];
-
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const member = await getMockSessionMember();
+  const isAdminShell = APP_PROFILE === 'admin';
 
   return (
     <html lang="en">
@@ -30,15 +24,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 LINE OA + LIFF + Omise
               </Link>
             </div>
-            <nav>
-              <ul>
-                {navigation.map((item) => (
-                  <li key={item.href}>
-                    <Link href={item.href}>{item.label}</Link>
+            {isAdminShell && (
+              <nav>
+                <ul>
+                  <li>
+                    <Link href="/admin">Admin Dashboard</Link>
                   </li>
-                ))}
-              </ul>
-            </nav>
+                </ul>
+              </nav>
+            )}
             <div className="user-pill">
               {member ? (
                 <>
@@ -49,7 +43,10 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   )}
                   <div>
                     <p>{member.lineDisplayName || 'LINE Member'}</p>
-                    <span>{member.email || 'line user • mock session'}</span>
+                    <span>
+                      {member.email ||
+                        (isAdminShell ? 'admin mock session' : 'line user • mock session')}
+                    </span>
                   </div>
                 </>
               ) : (

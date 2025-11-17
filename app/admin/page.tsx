@@ -1,7 +1,13 @@
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { AdminPortal } from '@/components/admin/AdminPortal';
+import { APP_PROFILE } from '@/lib/app-profile';
 
 export default async function AdminPage() {
+  if (APP_PROFILE !== 'admin') {
+    notFound();
+  }
+
   const [branches, courses, teachers, schedules, customers, payments, activePackageCount, revenueAgg, totalCustomers] =
     await Promise.all([
       prisma.branch.findMany({ orderBy: { name: 'asc' } }),
