@@ -64,8 +64,8 @@ export default function HomePage() {
         <div className="card">
           <h3>ฝั่งแอดมิน</h3>
           <p>
-            ใช้หน้า <Link href="/admin">/admin</Link> เพื่อสร้างสาขา คอร์ส และตารางเรียน จากนั้น
-            สามารถต่อ endpoint image / payment เพิ่มตามที่ README.md แนะนำ.
+            ใช้หน้า <Link href="/dashboard-87xDz6t">/dashboard-87xDz6t</Link> เพื่อสร้างสาขา คอร์ส และตารางเรียน
+            จากนั้นสามารถต่อ endpoint image / payment เพิ่มตามที่ README.md แนะนำ.
           </p>
         </div>
         <div className="card">
