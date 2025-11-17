@@ -38,29 +38,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                 ))}
               </ul>
             </nav>
-            <div className="user-pill">
-              {member ? (
-                <>
-                  {member.linePictureUrl ? (
-                    <img src={member.linePictureUrl} alt={member.lineDisplayName ?? 'Member avatar'} />
-                  ) : (
-                    <div className="avatar-fallback">{member.lineDisplayName?.charAt(0) ?? 'M'}</div>
-                  )}
-                  <div>
-                    <p>{member.lineDisplayName || 'LINE Member'}</p>
-                    <span>{member.email || 'line user • mock session'}</span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="avatar-fallback">?</div>
-                  <div>
-                    <p>ยังไม่ได้ล็อกอิน</p>
-                    <span>เปิดผ่าน LIFF เพื่อเชื่อมบัญชี LINE</span>
-                  </div>
-                </>
-              )}
-            </div>
+            {member && (
+              <div className="user-pill">
+                {member.linePictureUrl ? (
+                  <img src={member.linePictureUrl} alt={member.lineDisplayName ?? 'Member avatar'} />
+                ) : (
+                  <div className="avatar-fallback">{member.lineDisplayName?.charAt(0) ?? 'M'}</div>
+                )}
+                <div>
+                  <p>{member.lineDisplayName || 'LINE Member'}</p>
+                  <span>{member.email || 'line user • mock session'}</span>
+                </div>
+              </div>
+            )}
           </header>
           <main className="page-container">{children}</main>
           <footer className="site-footer">
