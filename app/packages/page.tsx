@@ -48,47 +48,49 @@ export default async function PackagesPage({ searchParams }: PackagesPageProps) 
             ))}
           </select>
         </label>
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <div className="form-actions">
           <button type="submit" className="primary-btn">
             อัปเดต
           </button>
         </div>
       </form>
 
-      <table className="data-table">
-        <thead>
-          <tr>
-            <th>ชื่อแพ็กเกจ</th>
-            <th>ประเภท</th>
-            <th>ราคา</th>
-            <th>สิทธิ์ที่ได้รับ</th>
-            <th>Scope</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {packages.map((pkg) => (
-            <tr key={pkg.id}>
-              <td>{pkg.name}</td>
-              <td>{pkg.packageType}</td>
-              <td>
-                {Number(pkg.price).toLocaleString('th-TH', { style: 'currency', currency: pkg.currency })}
-              </td>
-              <td>
-                {pkg.packageType === 'sessions'
-                  ? `${pkg.totalSessions || 0} ครั้ง`
-                  : `${pkg.durationDays || 0} วัน`}
-              </td>
-              <td>{pkg.scope === 'global' ? 'ใช้ได้ทุกสาขา' : pkg.branch?.name || 'สาขาเฉพาะ'}</td>
-              <td>
-                <a className="primary-btn" href={`/api/packages/${pkg.id}/purchase`}>
-                  ทดลอง purchase
-                </a>
-              </td>
+      <div className="table-wrapper">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>ชื่อแพ็กเกจ</th>
+              <th>ประเภท</th>
+              <th>ราคา</th>
+              <th>สิทธิ์ที่ได้รับ</th>
+              <th>Scope</th>
+              <th></th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {packages.map((pkg) => (
+              <tr key={pkg.id}>
+                <td>{pkg.name}</td>
+                <td>{pkg.packageType}</td>
+                <td>
+                  {Number(pkg.price).toLocaleString('th-TH', { style: 'currency', currency: pkg.currency })}
+                </td>
+                <td>
+                  {pkg.packageType === 'sessions'
+                    ? `${pkg.totalSessions || 0} ครั้ง`
+                    : `${pkg.durationDays || 0} วัน`}
+                </td>
+                <td>{pkg.scope === 'global' ? 'ใช้ได้ทุกสาขา' : pkg.branch?.name || 'สาขาเฉพาะ'}</td>
+                <td>
+                  <a className="primary-btn" href={`/api/packages/${pkg.id}/purchase`}>
+                    ทดลอง purchase
+                  </a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   );
 }

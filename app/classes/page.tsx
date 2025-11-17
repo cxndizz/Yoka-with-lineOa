@@ -69,7 +69,7 @@ export default async function ClassesPage({ searchParams }: ClassPageProps) {
             ))}
           </select>
         </label>
-        <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+        <div className="form-actions">
           <button type="submit" className="primary-btn">
             กรองข้อมูล
           </button>
