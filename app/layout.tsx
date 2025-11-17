@@ -4,14 +4,15 @@ import Link from 'next/link';
 import { getMockSessionMember } from '@/lib/mock-auth';
 
 export const metadata = {
-  title: 'Yoga Booking via LINE',
-  description: 'Yoga class booking system integrated with LINE OA & Omise',
+  title: 'Yoga Flow LIFF Studio',
+  description: 'Holistic yoga booking journey via LINE OA, LIFF & Omise',
 };
 
 const navigation = [
-  { href: '/', label: 'Overview' },
+  { href: '/', label: 'Yoga LIFF' },
+  { href: '/liff', label: 'Rich Menu Entry' },
   { href: '/branches', label: 'Branches' },
-  { href: '/classes', label: 'Class Schedule' },
+  { href: '/classes', label: 'Classes' },
   { href: '/packages', label: 'Packages' },
 ];
 
@@ -24,9 +25,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <div className="app-shell">
           <header className="site-header">
             <div>
-              <p className="eyebrow">Yoga Booking Starter</p>
+              <p className="eyebrow">Yoka Flow Collective</p>
               <Link href="/" className="logo">
-                LINE OA + LIFF + Omise
+                Yoga Booking Hub
               </Link>
             </div>
             <nav>
@@ -54,11 +55,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
           </header>
           <main className="page-container">{children}</main>
           <footer className="site-footer">
-            <p>
-              อ้างอิง flow และ API จาก README.md เพื่อปรับสู่ระบบใช้งานจริง — พร้อมเชื่อมต่อ LINE OA,
-              LIFF และ Omise.
-            </p>
-            <p>© {new Date().getFullYear()} Yoga Booking Starter</p>
+            <p>ระบบจองโยคะหลายสาขา เชื่อม LINE OA, LIFF และ Omise เพื่อประสบการณ์ไร้รอยต่อ.</p>
+            <p>© {new Date().getFullYear()} Yoka Flow Studio</p>
           </footer>
         </div>
       </body>
