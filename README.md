@@ -57,6 +57,8 @@ cp .env.example .env
 - `DATABASE_URL` เป็น URL ของ PostgreSQL ของคุณ
 - `LINE_CHANNEL_ID`, `LINE_CHANNEL_SECRET`, `LINE_LOGIN_CALLBACK_URL`
   - สำหรับใช้กับ LINE Login / LIFF (ตอนนี้ยังไม่ต่อให้ครบ ใช้เป็น placeholder ไว้)
+- `NEXT_PUBLIC_LIFF_ID`
+  - ใช้บนหน้า `/liff` เพื่อให้ LIFF SDK รู้ว่าจะ init ด้วยไอดีใด (จำเป็นต้องตั้งค่าจริงก่อนใช้งาน)
 - `OMISE_PUBLIC_KEY`, `OMISE_SECRET_KEY`
   - จาก Omise Dashboard
 - `APP_BASE_URL`

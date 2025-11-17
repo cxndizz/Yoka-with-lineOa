@@ -1,15 +1,88 @@
+import Link from 'next/link';
+
+const features = [
+  'Next.js 14 App Router พร้อม TypeScript',
+  'Prisma + PostgreSQL สำหรับจัดการสาขา คอร์ส แพ็กเกจ และตารางเรียน',
+  'เชื่อมต่อ LINE OA ผ่าน LIFF / LINE Login และเรียกใช้ Omise Node SDK ได้ทันที',
+  'API พื้นฐาน: auth/line, me, branches, classes, bookings, packages, purchases, omise/webhook',
+];
+
+const checklist = [
+  'ตั้งค่า environment (.env) ตาม README.md',
+  'Prisma migrate + เติมข้อมูลผ่าน Studio หรือ API',
+  'เชื่อม LIFF URL → /liff แล้วส่งโปรไฟล์ไป /api/auth/line',
+  'ทดสอบ flow จองคลาส / ซื้อแพ็กเกจ / ยกเลิก / รับ webhook',
+];
+
 export default function HomePage() {
   return (
-    <main>
-      <h1>Yoga Booking via LINE</h1>
-      <p>
-        This is the base Next.js app for your multi-branch yoga course booking system integrated
-        with LINE Login and Omise.
-      </p>
-      <p>
-        Connect from your LINE OA Rich Menu to a LIFF entry page (for example <code>/liff</code>)
-        and then redirect users into the booking flows.
-      </p>
-    </main>
+    <div className="hero">
+      <div>
+        <p className="tag">พร้อมต่อยอดสู่ Production</p>
+        <h1>ระบบจองคอร์สโยคะหลายสาขา ผ่าน LINE OA + Omise</h1>
+        <p>
+          โครงสร้างพร้อมใช้สำหรับทีมสตูดิโอโยคะที่ต้องการให้ลูกค้าจองคลาสผ่าน Rich-Menu,
+          รู้สิทธิ์คงเหลือจากแพ็กเกจ และจ่ายเงินผ่าน Omise ได้แบบไร้รอยต่อ ทั้งหมดต่อยอดจาก
+          README.md ที่ให้ขั้นตอนครบถ้วน.
+        </p>
+        <div className="cta-row">
+          <Link href="/branches" className="primary-btn">
+            เปิดตารางคลาส &rarr;
+          </Link>
+          <Link href="/liff" className="ghost-btn">
+            ทดสอบ LIFF entry
+          </Link>
+        </div>
+      </div>
+
+      <div className="card">
+        <h3>ฟีเจอร์หลัก</h3>
+        <ul>
+          {features.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h2 className="section-heading">Checklist ก่อนขึ้นจริง</h2>
+        <ol>
+          {checklist.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="section-grid">
+        <div className="card">
+          <h3>Flow สมาชิก</h3>
+          <p>
+            ลูกค้าเปิด Rich Menu → LIFF (/liff) → ล็อกอิน LINE → /branches เพื่อเลือกสาขา
+            → /classes สำหรับเลือกคลาส → /packages เมื่อต้องซื้อสิทธิ์เพิ่ม.
+          </p>
+        </div>
+        <div className="card">
+          <h3>ฝั่งแอดมิน</h3>
+          <p>
+            ใช้หน้า <Link href="/admin">/admin</Link> เพื่อสร้างสาขา คอร์ส และตารางเรียน จากนั้น
+            สามารถต่อ endpoint image / payment เพิ่มตามที่ README.md แนะนำ.
+          </p>
+        </div>
+        <div className="card">
+          <h3>Omise + Webhook</h3>
+          <p>
+            API <code>/api/packages/:id/purchase</code> และ <code>/api/omise/webhook</code>{' '}
+            พร้อมสำหรับเชื่อม Omise Dashboard – อย่าลืมตรวจ signature ก่อนอัปเดตสถานะ.
+          </p>
+        </div>
+        <div className="card">
+          <h3>Auth Strategy</h3>
+          <p>
+            ปัจจุบันใช้ mock member (record แรกใน DB) เพื่อให้ UI ทำงานได้ครบทุกหน้า พร้อมบอกตำแหน่ง
+            ที่ต้องต่อ session / JWT จริงใน README.md.
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }
