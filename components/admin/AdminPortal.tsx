@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type BranchPayload = {
   id: string;
@@ -65,6 +65,17 @@ type DashboardStats = {
   activePackages: number;
 };
 
+type SessionSummary = {
+  token: string;
+  referenceId: string;
+  displayName?: string | null;
+  metadata?: Record<string, any>;
+  lastSeenAt: string;
+  expiresAt: string;
+};
+
+type ConnectionState = 'connected' | 'connecting' | 'disconnected';
+
 interface AdminPortalProps {
   branches: BranchPayload[];
   courses: CoursePayload[];
@@ -90,9 +101,14 @@ function normalizeAmount(value: any) {
 }
 
 export function AdminPortal({ branches, courses, teachers, customers, payments, schedules, stats }: AdminPortalProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [session, setSession] = useState<SessionSummary | null>(null);
+  const [sessionStatus, setSessionStatus] = useState<'checking' | 'ready'>('checking');
+  const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
+  const socketRef = useRef<WebSocket | null>(null);
+  const heartbeatRef = useRef<number | null>(null);
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [loginLoading, setLoginLoading] = useState(false);
 
   const [branchList, setBranchList] = useState<BranchPayload[]>(branches);
   const [branchEdit, setBranchEdit] = useState<BranchPayload | null>(null);
@@ -119,14 +135,95 @@ export function AdminPortal({ branches, courses, teachers, customers, payments, 
   const [paymentMessage, setPaymentMessage] = useState<string | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
-  function handleLogin(event: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSession() {
+      try {
+        const res = await fetch('/api/auth/admin', { cache: 'no-store' });
+        if (!res.ok) {
+          if (!cancelled) {
+            setSession(null);
+          }
+          return;
+        }
+        const payload = await res.json();
+        if (!cancelled) {
+          setSession(payload.session);
+        }
+      } catch {
+        if (!cancelled) {
+          setSession(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setSessionStatus('ready');
+        }
+      }
+    }
+
+    loadSession();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      startRealtime(session.token);
+      return;
+    }
+    socketRef.current?.close();
+    if (typeof window !== 'undefined' && heartbeatRef.current) {
+      window.clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+    setConnectionState('disconnected');
+  }, [session]);
+
+  useEffect(() => {
+    return () => {
+      socketRef.current?.close();
+      if (typeof window !== 'undefined' && heartbeatRef.current) {
+        window.clearInterval(heartbeatRef.current);
+      }
+    };
+  }, []);
+
+  async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    if (!formData.get('email') || !formData.get('password')) {
+    const email = formData.get('email');
+    const password = formData.get('password');
+    if (!email || !password) {
       setLoginError('กรุณากรอกอีเมลและรหัสผ่าน');
       return;
     }
-    setIsAuthenticated(true);
+    setLoginError(null);
+    setLoginLoading(true);
+    try {
+      const response = await fetch('/api/auth/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(payload.error === 'invalid-credentials' ? 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' : payload.error || 'ไม่สามารถเข้าสู่ระบบได้');
+      }
+      setSession(payload.session);
+      setSessionStatus('ready');
+      (event.currentTarget as HTMLFormElement).reset();
+    } catch (error: any) {
+      setLoginError(error.message);
+    } finally {
+      setLoginLoading(false);
+    }
+  }
+
+  async function handleLogout() {
+    await fetch('/api/auth/admin', { method: 'DELETE' });
+    setSession(null);
+    setActiveView('dashboard');
   }
 
   async function request<T>(url: string, options: RequestInit): Promise<T> {
@@ -142,6 +239,49 @@ export function AdminPortal({ branches, courses, teachers, customers, payments, 
       throw new Error(payload.error || 'ไม่สามารถบันทึกข้อมูลได้');
     }
     return res.json();
+  }
+
+  function startRealtime(token: string) {
+    if (typeof window === 'undefined') return;
+    if (socketRef.current) {
+      socketRef.current.close();
+    }
+    setConnectionState('connecting');
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const socket = new WebSocket(`${protocol}://${window.location.host}/api/realtime/session?token=${token}&role=admin`);
+    socketRef.current = socket;
+
+    socket.addEventListener('open', () => {
+      setConnectionState('connected');
+    });
+
+    socket.addEventListener('message', (event) => {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.type === 'session:update') {
+          setSession(payload.session);
+        }
+        if (payload?.type === 'session:expired') {
+          setSession(null);
+          setLoginError('เซสชันหมดอายุ โปรดเข้าสู่ระบบใหม่');
+        }
+      } catch {
+        // ignore parse errors
+      }
+    });
+
+    socket.addEventListener('close', () => {
+      setConnectionState('disconnected');
+    });
+
+    if (heartbeatRef.current) {
+      window.clearInterval(heartbeatRef.current);
+    }
+    heartbeatRef.current = window.setInterval(() => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'heartbeat' }));
+      }
+    }, 10000);
   }
 
   async function handleBranchCreate(event: React.FormEvent<HTMLFormElement>) {
@@ -413,12 +553,29 @@ export function AdminPortal({ branches, courses, teachers, customers, payments, 
     }
   }
 
-  if (!isAuthenticated) {
+  const connectionLabel =
+    connectionState === 'connected'
+      ? 'Real-time พร้อม'
+      : connectionState === 'connecting'
+        ? 'กำลังเชื่อมต่อ Real-time'
+        : 'ยังไม่เชื่อมต่อ Real-time';
+
+  if (sessionStatus === 'checking') {
+    return (
+      <div className="admin-login-card loading-state">
+        <p className="tag">Back-office</p>
+        <h1>กำลังตรวจสอบเซสชัน</h1>
+        <p>ระบบกำลังตรวจสอบเซสชันเดิมและสร้างการเชื่อมต่อแบบ Real-time</p>
+      </div>
+    );
+  }
+
+  if (!session) {
     return (
       <div className="admin-login-card">
         <p className="tag">Admin Portal</p>
         <h1>ลงชื่อเข้าใช้เพื่อจัดการระบบ</h1>
-        <p>แดชบอร์ดนี้แยกจาก LIFF ลูกค้าอย่างชัดเจน ใช้สำหรับเจ้าหน้าที่เท่านั้น</p>
+        <p>แดชบอร์ดนี้เชื่อมต่อด้วย WebSocket เพื่อป้องกันเซสชันหลุดเมื่อเปลี่ยนแท็บ</p>
         <form onSubmit={handleLogin}>
           <label>
             อีเมล
@@ -428,8 +585,8 @@ export function AdminPortal({ branches, courses, teachers, customers, payments, 
             รหัสผ่าน
             <input name="password" type="password" placeholder="••••••" required />
           </label>
-          <button type="submit" className="primary-btn">
-            เข้าสู่ระบบหลังบ้าน
+          <button type="submit" className="primary-btn" disabled={loginLoading}>
+            {loginLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบหลังบ้าน'}
           </button>
           {loginError && <p className="error-text">{loginError}</p>}
         </form>
@@ -1101,21 +1258,68 @@ export function AdminPortal({ branches, courses, teachers, customers, payments, 
   }
 
   return (
-    <div className="admin-portal-shell">
-      <aside className="admin-side-nav">
-        <h3>Yoga Admin</h3>
-        {navItems.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={activeView === item.key ? 'active' : ''}
-            onClick={() => setActiveView(item.key)}
-          >
-            {item.label}
+    <div className="admin-viewport">
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar__brand">
+          <p className="eyebrow">Yoga Backoffice</p>
+          <h2>Realtime Console</h2>
+          <p>ดูแลข้อมูลทุกสาขา พร้อมอัปเดตผ่าน WebSocket</p>
+        </div>
+        <div className="admin-session-card">
+          <div>
+            <p className="session-title">{session.displayName || 'Administrator'}</p>
+            <span>{session.metadata?.email || session.referenceId}</span>
+          </div>
+          <div className={`connection-pill connection-pill--${connectionState}`}>
+            <span className="dot" />
+            {connectionLabel}
+          </div>
+          <p className="session-meta">
+            เซสชันหมดอายุ {new Date(session.expiresAt).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}
+          </p>
+          <button type="button" className="ghost-btn" onClick={handleLogout}>
+            ออกจากระบบ
           </button>
-        ))}
+        </div>
+        <nav className="admin-side-nav">
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={activeView === item.key ? 'active' : ''}
+              onClick={() => setActiveView(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
       </aside>
-      {renderActivePanel()}
+      <div className="admin-main">
+        <header className="admin-header">
+          <div>
+            <p className="tag">Back-office</p>
+            <h1>Yoga Admin Dashboard</h1>
+            <p>แดชบอร์ดเต็มหน้าจอสำหรับจัดการข้อมูลสาขา คลาส ลูกค้า และธุรกรรมแบบเรียลไทม์</p>
+          </div>
+          <div className="admin-header__stats">
+            <div>
+              <p>รายรับเดือนนี้</p>
+              <strong>{stats.revenueThisMonth.toLocaleString('th-TH')}</strong>
+            </div>
+            <div>
+              <p>ลูกค้าทั้งหมด</p>
+              <strong>{stats.totalCustomers}</strong>
+            </div>
+            <div>
+              <p>คลาสที่กำลังจะถึง</p>
+              <strong>{stats.upcomingClasses}</strong>
+            </div>
+          </div>
+        </header>
+        <div className="admin-content">
+          <div className="admin-content__panel">{renderActivePanel()}</div>
+        </div>
+      </div>
     </div>
   );
 }
