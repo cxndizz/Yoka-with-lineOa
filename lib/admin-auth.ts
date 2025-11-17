@@ -1,4 +1,5 @@
 import type { Member } from '@prisma/client';
+import { prisma } from './prisma';
 import { getMockSessionMember } from './mock-auth';
 
 /**
@@ -7,8 +8,22 @@ import { getMockSessionMember } from './mock-auth';
  */
 export async function authorizeAdmin(): Promise<Member | null> {
   const member = await getMockSessionMember();
-  if (!member || !member.isAdmin) {
+  if (!member) {
     return null;
   }
-  return member;
+
+  if (member.isAdmin) {
+    return member;
+  }
+
+  const adminExists = await prisma.member.count({ where: { isAdmin: true } });
+  if (adminExists === 0) {
+    const elevated = await prisma.member.update({
+      where: { id: member.id },
+      data: { isAdmin: true },
+    });
+    return elevated;
+  }
+
+  return null;
 }

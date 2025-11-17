@@ -38,7 +38,7 @@ export default async function BranchesPage() {
         <div className="card">
           <h3>Tips</h3>
           <ul>
-            <li>เพิ่ม/ปิดสาขาได้ที่ /admin → Create Branch</li>
+            <li>เพิ่ม/ปิดสาขาได้ที่ /dashboard-87xDz6t → Create Branch</li>
             <li>เชื่อม Rich-menu ได้ทั้งตามสาขา หรือใช้ global URL</li>
             <li>กำหนด homeBranch ให้สมาชิก เพื่อ personalize</li>
           </ul>

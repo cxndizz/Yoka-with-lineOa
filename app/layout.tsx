@@ -13,7 +13,6 @@ const navigation = [
   { href: '/branches', label: 'Branches' },
   { href: '/classes', label: 'Class Schedule' },
   { href: '/packages', label: 'Packages' },
-  { href: '/admin', label: 'Admin' },
 ];
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
