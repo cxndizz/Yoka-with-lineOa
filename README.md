@@ -63,6 +63,8 @@ cp .env.example .env
   - จาก Omise Dashboard
 - `APP_BASE_URL`
   - เช่น `http://localhost:3000` ในตอน dev
+- `ADMIN_EMAIL`, `ADMIN_PASSWORD`
+  - ตั้งค่าบัญชีสำหรับเข้า Backoffice dashboard (ค่าเริ่มต้นคือ `admin@yogaclub.com` / `supersecret`)
 
 ### 4. สร้างฐานข้อมูลด้วย Prisma
 
