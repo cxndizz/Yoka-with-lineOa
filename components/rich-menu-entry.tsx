@@ -134,16 +134,20 @@ export default function RichMenuEntry() {
           return;
         }
         const liffProfile = await liff.getProfile();
-        const payload = {
-          lineUserId: liffProfile.userId,
+        const profilePayload: LineProfile = {
+          userId: liffProfile.userId,
           displayName: liffProfile.displayName,
           pictureUrl: liffProfile.pictureUrl,
         };
-        setProfile(payload);
+        setProfile(profilePayload);
         const response = await fetch('/api/auth/line', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            lineUserId: profilePayload.userId,
+            displayName: profilePayload.displayName,
+            pictureUrl: profilePayload.pictureUrl,
+          }),
         });
         if (!response.ok) {
           const data = await response.json().catch(() => ({}));
