@@ -41,7 +41,8 @@ async function seedBranches() {
     },
   ];
 
-  const results = [];
+  type BranchRecord = Awaited<ReturnType<typeof prisma.branch.upsert>>;
+  const results: BranchRecord[] = [];
   for (const data of branches) {
     const branch = await prisma.branch.upsert({
       where: { slug: data.slug },
@@ -84,7 +85,8 @@ async function seedCourses() {
     },
   ];
 
-  const results = [];
+  type CourseRecord = Awaited<ReturnType<typeof prisma.course.upsert>>;
+  const results: CourseRecord[] = [];
   for (const data of courses) {
     const course = await prisma.course.upsert({
       where: { id: data.id },

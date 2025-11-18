@@ -79,8 +79,14 @@ export async function GET(req: NextRequest) {
     clearInterval(interval);
   });
 
-  return new Response(null, {
+  interface WebSocketResponseInit extends ResponseInit {
+    webSocket?: WebSocket;
+  }
+
+  const responseInit: WebSocketResponseInit = {
     status: 101,
     webSocket: client,
-  });
+  };
+
+  return new Response(null, responseInit);
 }
